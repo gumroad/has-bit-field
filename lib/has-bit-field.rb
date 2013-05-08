@@ -37,18 +37,10 @@ module HasBitField
 
       scope_sym = respond_to?(:validates) ? :scope : :named_scope
 
-      if columns_hash[bit_field_attribute.to_s].null
-        class_eval %{
-          send scope_sym, :#{field}, :conditions => ["#{table_name}.#{bit_field_attribute} IS NOT NULL AND (#{table_name}.#{bit_field_attribute} & ?) != 0", #{field}_bit]
-          send scope_sym, :not_#{field}, :conditions => ["#{table_name}.#{bit_field_attribute} IS NULL OR (#{table_name}.#{bit_field_attribute} & ?) = 0", #{field}_bit]          
-        }
-      else
-        class_eval %{
-          send scope_sym, :#{field}, :conditions => ["(#{table_name}.#{bit_field_attribute} & ?) != 0", #{field}_bit]
-          send scope_sym, :not_#{field}, :conditions => ["(#{table_name}.#{bit_field_attribute} & ?) = 0", #{field}_bit]
-        }
-      end
-
+      class_eval %{
+        send scope_sym, :#{field}, lambda{where("(#{table_name}.#{bit_field_attribute} & ?) != 0", #{field}_bit)}
+        send scope_sym, :not_#{field}, lambda{where("(#{table_name}.#{bit_field_attribute} & ?) = 0", #{field}_bit)}
+      }
     end
   end
 end
