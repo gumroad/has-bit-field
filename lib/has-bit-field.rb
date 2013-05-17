@@ -4,7 +4,7 @@ module HasBitField
   # all following arguments should also be symbols,
   # which will be the name of each flag in the bit field
   def has_bit_field(bit_field_attribute, *args)
-    option = args.last.is_a?(Hash) ? args.last : {}
+    option = args.last.is_a?(Hash) ? args.pop : {}
 
     args.each_with_index do |field,i|
       class_eval %{
