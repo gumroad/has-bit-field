@@ -4,6 +4,8 @@ module HasBitField
   # all following arguments should also be symbols,
   # which will be the name of each flag in the bit field
   def has_bit_field(bit_field_attribute, *args)
+    option = args.last.is_a?(Hash) ? args.last : {}
+
     args.each_with_index do |field,i|
       class_eval %{
         class << self
@@ -37,10 +39,17 @@ module HasBitField
 
       scope_sym = respond_to?(:validates) ? :scope : :named_scope
 
-      class_eval %{
-        send scope_sym, :#{field}, lambda{where("(#{table_name}.#{bit_field_attribute} & ?) != 0", #{field}_bit)}
-        send scope_sym, :not_#{field}, lambda{where("(#{table_name}.#{bit_field_attribute} & ?) = 0", #{field}_bit)}
-      }
+      if option[:nullable]
+        class_eval %{
+          send scope_sym, :#{field}, :conditions => ["#{table_name}.#{bit_field_attribute} IS NOT NULL AND (#{table_name}.#{bit_field_attribute} & ?) != 0", #{field}_bit]
+          send scope_sym, :not_#{field}, :conditions => ["#{table_name}.#{bit_field_attribute} IS NULL OR (#{table_name}.#{bit_field_attribute} & ?) = 0", #{field}_bit]
+        }
+      else
+        class_eval %{
+          send scope_sym, :#{field}, lambda{where("(#{table_name}.#{bit_field_attribute} & ?) != 0", #{field}_bit)}
+          send scope_sym, :not_#{field}, lambda{where("(#{table_name}.#{bit_field_attribute} & ?) = 0", #{field}_bit)}
+        }
+      end
     end
   end
 end

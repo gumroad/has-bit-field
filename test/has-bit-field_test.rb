@@ -14,7 +14,7 @@ end
 class Person < ActiveRecord::Base
   extend HasBitField
 
-  has_bit_field :bit_field, :likes_ice_cream, :plays_golf, :watches_tv, :reads_books
+  has_bit_field :bit_field, :likes_ice_cream, :plays_golf, :watches_tv, :reads_books, nullable: true
 end
 
 
